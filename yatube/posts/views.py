@@ -44,7 +44,7 @@ def profile(request, username):
         following = Follow.objects.filter(
             user=request.user, author=author).exist()
     else:
-        following = False        
+        following = False
     context = {
         'page_obj': page_obj,
         'count_posts': count_posts,
