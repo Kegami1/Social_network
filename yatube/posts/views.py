@@ -42,7 +42,7 @@ def profile(request, username):
     count_posts = posts.count()
     if request.user.is_authenticated:
         following = Follow.objects.filter(
-            user=request.user, author=author).exist()
+            user=request.user, author=author).exists()
     else:
         following = False
     context = {
