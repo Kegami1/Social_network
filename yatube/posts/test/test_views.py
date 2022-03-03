@@ -4,7 +4,6 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.core.cache import cache
 
-
 from yatube.settings import POSTS_ON_PAGE
 from posts.models import Group, Post, Follow
 
@@ -156,7 +155,7 @@ class PostViewsTest(TestCase):
         cache.clear()
         response = self.authorized_client.get(reverse('posts:index'))
         posts_cache = response.content
-        post = Post.objects.get(pk=1)
+        post = Post.objects.first()
         post.delete()
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertEqual(response.content, posts_cache)
@@ -228,30 +227,48 @@ class FollowViewsTest(TestCase):
         self.authorized_client.force_login(self.user)
         self.authorized_client_follower.force_login(self.user_follower)
 
-    def test_auth_user_can_follow_and_unfollow(self):
+    def test_auth_user_can_follow(self):
         """Авторизированный пользователь может подписываться
-        и отписываться от пользователей"""
+        на пользователей"""
         self.authorized_client_follower.get(reverse(
             'posts:profile_follow', kwargs={'username': self.user}))
         self.assertEqual(Follow.objects.count(), 1)
+
+    def test_auth_user_can_unfollow(self):
+        """Авторизированный пользователь может отписываться
+        от пользователей"""
+        Follow.objects.create(
+            user=self.user_follower,
+            author=self.user
+        )
         self.authorized_client_follower.get(reverse(
             'posts:profile_unfollow', kwargs={'username': self.user}
         ))
         self.assertEqual(Follow.objects.count(), 0)
 
     def test_new_post_for_follower(self):
-        """Пост корректно отображается в ленте у фоловеров
-        и не отображается у остальных пользователей"""
-        self.authorized_client_follower.get(reverse(
-            'posts:profile_follow', kwargs={'username': self.user}))
+        """Новый пост корректно отображается в ленте
+        у пользователей подписавшихся на автора"""
+        Follow.objects.create(
+            user=self.user_follower,
+            author=self.user
+        )
         new_post = Post.objects.create(
-            text='Новый пост для фолловеров',
+            text='Новый пост для фоловеров',
             author=self.user
         )
         response = self.authorized_client_follower.get(reverse(
             'posts:follow_index'))
         follow_post = response.context['page_obj'][0]
         self.assertEqual(follow_post.text, new_post.text)
+
+    def test_new_post_for_other_users(self):
+        """Новый пост не появляется в ленте у пользвателей
+        которые не подписаны на автора"""
+        new_post = Post.objects.create(
+            text='Новый пост для фоловеров',
+            author=self.user
+        )
         response_author = self.authorized_client.get(reverse(
             'posts:follow_index'))
-        self.assertNotIn(follow_post, response_author.context['page_obj'])
+        self.assertNotIn(new_post, response_author.context['page_obj'])

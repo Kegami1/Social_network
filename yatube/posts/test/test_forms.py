@@ -136,3 +136,8 @@ class CommentViewTest(TestCase):
             'posts:add_comment', kwargs={'post_id': self.post.id})
         )
         self.assertEqual(response.status_code, 302)
+        url_login = reverse('users:login')
+        url_comment = reverse('posts:add_comment', kwargs={
+            'post_id': self.post.id
+        })
+        self.assertRedirects(response, f'{url_login}?next={url_comment}')

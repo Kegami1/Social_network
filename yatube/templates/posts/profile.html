@@ -41,10 +41,7 @@
       <p>{{ post.text }}</p>
       <a href="{% url 'posts:post_detail' post.pk %}">подробная информация </a>
       <br>     
-      {% if post.group.slug is not None %}     
-        <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
-      {% else %}
-      {% endif %}        
+      {% include 'posts/includes/all_group_posts.html'%}        
       {% if not forloop.last %}<hr>{% endif %}
       {% endfor %}
       {% include 'posts/includes/paginator.html' %}
