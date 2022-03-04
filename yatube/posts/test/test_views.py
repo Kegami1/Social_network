@@ -252,7 +252,9 @@ class FollowViewsTest(TestCase):
         ))
         new_follow_count = Follow.objects.count()
         self.assertEqual(follow_count, new_follow_count)
-        self.assertEqual(new_follow_count, 0)
+        self.assertIsNone(Follow.objects.filter(
+            user=self.user_follower, author=self.user).first()
+        )
 
     def test_new_post_for_follower(self):
         """Новый пост корректно отображается в ленте
