@@ -52,6 +52,7 @@ class PostURLTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_url_redirects(self):
+        """Тестирование редиректов"""
         templates_url_names = {
             f'/posts/{self.post.id}/comment/': reverse(
                 'posts:post_detail', kwargs={'post_id': self.post.id}),
@@ -67,5 +68,6 @@ class PostURLTest(TestCase):
                 self.assertRedirects(response, address)
 
     def test_404_page(self):
+        """Страница 404"""
         response = self.guest_client.get('/unexisting_page/')
         self.assertEqual(response.status_code, 404)

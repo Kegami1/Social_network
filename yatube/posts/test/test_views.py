@@ -230,13 +230,19 @@ class FollowViewsTest(TestCase):
     def test_auth_user_can_follow(self):
         """Авторизированный пользователь может подписываться
         на пользователей"""
+        follow_count = Follow.objects.count()
         self.authorized_client_follower.get(reverse(
             'posts:profile_follow', kwargs={'username': self.user}))
-        self.assertEqual(Follow.objects.count(), 1)
+        new_follow_count = Follow.objects.count()
+        self.assertEqual(follow_count + 1, new_follow_count)
+        follow = Follow.objects.first()
+        self.assertEqual(follow.author, self.user)
+        self.assertEqual(follow.user, self.user_follower)
 
     def test_auth_user_can_unfollow(self):
         """Авторизированный пользователь может отписываться
         от пользователей"""
+        follow_count = Follow.objects.count()
         Follow.objects.create(
             user=self.user_follower,
             author=self.user
@@ -244,7 +250,9 @@ class FollowViewsTest(TestCase):
         self.authorized_client_follower.get(reverse(
             'posts:profile_unfollow', kwargs={'username': self.user}
         ))
-        self.assertEqual(Follow.objects.count(), 0)
+        new_follow_count = Follow.objects.count()
+        self.assertEqual(follow_count, new_follow_count)
+        self.assertEqual(new_follow_count, 0)
 
     def test_new_post_for_follower(self):
         """Новый пост корректно отображается в ленте
